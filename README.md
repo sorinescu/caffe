@@ -23,6 +23,9 @@ Happy brewing!
 # Intel® Distribution of Caffe*
 This fork is dedicated to improving Caffe performance when running on CPU, in particular Intel® Xeon processors (HSW, BDW, Xeon Phi)
 
+# Faster RCNN code
+In addition to the Intel code, this fork contains the changes from [caffe-fast-rcnn](https://github.com/rbgirshick/caffe-fast-rcnn), specifically the `faster-rcnn` branch.
+
 ## Building
 Build procedure is the same as on bvlc-caffe-master branch. Both Make and CMake can be used.
 When OpenMP is available will be used automatically.
