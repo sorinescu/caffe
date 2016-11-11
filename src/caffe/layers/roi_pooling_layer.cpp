@@ -151,7 +151,7 @@ void ROIPoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
   const int* argmax_data = max_idx_.cpu_data();
 
-  caffe_cpu_set(bottom_count, Dtype(0.), bottom_diff);
+  caffe_set(bottom_count, Dtype(0.), bottom_diff);
 
   for (int roi_n = 0; roi_n < num_rois; ++roi_n) {
     int roi_batch_ind = bottom_rois[0];

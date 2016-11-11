@@ -131,20 +131,20 @@ void SmoothL1LossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
           alpha,                           // alpha
           diff_.cpu_data(),                // x
           Dtype(0),                        // beta
-          bottom[i]->mutable_gpu_diff());  // y
+          bottom[i]->mutable_cpu_diff());  // y
       if (has_weights_) {
         // Scale by "inside" weight
         caffe_mul(
             count,
-            bottom[2]->gpu_data(),
-            bottom[i]->gpu_diff(),
-            bottom[i]->mutable_gpu_diff());
+            bottom[2]->cpu_data(),
+            bottom[i]->cpu_diff(),
+            bottom[i]->mutable_cpu_diff());
         // Scale by "outside" weight
         caffe_mul(
             count,
-            bottom[3]->gpu_data(),
-            bottom[i]->gpu_diff(),
-            bottom[i]->mutable_gpu_diff());
+            bottom[3]->cpu_data(),
+            bottom[i]->cpu_diff(),
+            bottom[i]->mutable_cpu_diff());
       }
     }
   }
