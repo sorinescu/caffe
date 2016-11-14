@@ -77,7 +77,7 @@ void SmoothL1LossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 #endif
   for (int index = 0; index < count; ++index) {
     Dtype val = in[index];
-    Dtype abs_val = abs(val);
+    Dtype abs_val = fabs(val);
     if (abs_val < 1.0 / sigma2_) {
       out[index] = 0.5 * val * val * sigma2_;
     } else {
@@ -114,7 +114,7 @@ void SmoothL1LossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 #endif
   for (int index = 0; index < count; ++index) {
       Dtype val = in[index];
-      Dtype abs_val = abs(val);
+      Dtype abs_val = fabs(val);
       if (abs_val < 1.0 / sigma2_) {
         out[index] = sigma2_ * val;
       } else {
