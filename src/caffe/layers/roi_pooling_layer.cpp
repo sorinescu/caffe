@@ -61,8 +61,9 @@ void ROIPoolingLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   int batch_size = bottom[0]->num();
   int top_count = top[0]->count();
   Dtype* top_data = top[0]->mutable_cpu_data();
-  caffe_set(top_count, Dtype(-FLT_MAX), top_data);
   int* argmax_data = max_idx_.mutable_cpu_data();
+
+  caffe_set(top_count, Dtype(-FLT_MAX), top_data);
   caffe_set(top_count, -1, argmax_data);
 
   // For each ROI R = [batch_index x1 y1 x2 y2]: max pool over R
@@ -142,8 +143,6 @@ void ROIPoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   // Number of ROIs
   const int num_rois = bottom[1]->num();
   CHECK_EQ(num_rois, top[0]->num());
-  const int batch_size = bottom[0]->num();
-  const int top_count = top[0]->count();
   const int bottom_count = bottom[0]->count();
 
   const Dtype* bottom_rois = bottom[1]->cpu_data();
@@ -151,14 +150,10 @@ void ROIPoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
   const int* argmax_data = max_idx_.cpu_data();
 
-  caffe_set(bottom_count, Dtype(0.), bottom_diff);
+  caffe_set(bottom_count, Dtype(0), bottom_diff);
 
-  for (int roi_n = 0; roi_n < num_rois; ++roi_n) {
+  for (int n = 0; n < num_rois; ++n) {
     int roi_batch_ind = bottom_rois[0];
-    // Skip if ROI's batch index doesn't match n
-    if (roi_n != roi_batch_ind)
-      continue;
-
     int roi_start_w = round(bottom_rois[1] * spatial_scale_);
     int roi_start_h = round(bottom_rois[2] * spatial_scale_);
     int roi_end_w = round(bottom_rois[3] * spatial_scale_);
@@ -179,12 +174,12 @@ void ROIPoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     int start_w = max(0, roi_start_w);
     int end_w = min(width_, roi_end_w + 1);
 
+    // Reverse engineer indices of elements pooled by this ROI
+    Dtype* offset_bottom_diff = bottom_diff + bottom[0]->offset(roi_batch_ind);
+
     for (int c = 0; c < channels_; ++c) {
       for (int h = start_h; h < end_h; ++h) {
         for (int w = start_w; w < end_w; ++w) {
-          if (w < roi_start_w || w > roi_end_w)
-            continue;
-
           int index = h * width_ + w;
 
           // Compute feasible set of pooled units that could have pooled
@@ -200,7 +195,7 @@ void ROIPoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
           pwstart = min(max(pwstart, 0), pooled_width_);
           pwend = min(max(pwend, 0), pooled_width_);
 
-          Dtype gradient = 0.;
+          Dtype gradient = Dtype(0);
 #ifdef _OPENMP
 #pragma omp parallel for collapse(2) reduction(+:gradient)
 #endif
@@ -213,15 +208,18 @@ void ROIPoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
             }
           }
 
-          bottom_diff[index] += gradient;
+          offset_bottom_diff[index] += gradient;
         }
       }
 
       // Increment all data pointers by one channel
-      bottom_diff += bottom[0]->offset(0, 1);
+      offset_bottom_diff += bottom[0]->offset(0, 1);
       top_diff += top[0]->offset(0, 1);
       argmax_data += max_idx_.offset(0, 1);
     }
+
+    // Increment ROI data pointer
+    bottom_rois += bottom[1]->offset(1);
   }
 }
 
