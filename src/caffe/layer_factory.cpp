@@ -276,13 +276,13 @@ shared_ptr<Layer<Dtype> > GetBatchNormLayer(const LayerParameter& param) {
   BatchNormParameter_Engine engine = param.batch_norm_param().engine();
 
   if (engine == BatchNormParameter_Engine_DEFAULT) {
-#if defined(USE_MKL2017_AS_DEFAULT_ENGINE)
-    engine = BatchNormParameter_Engine_MKL2017;
-#elif defined(USE_MKLDNN_AS_DEFAULT_ENGINE)
-    engine = BatchNormParameter_Engine_MKLDNN;
-#else
+//#if defined(USE_MKL2017_AS_DEFAULT_ENGINE)
+//    engine = BatchNormParameter_Engine_MKL2017;
+//#elif defined(USE_MKLDNN_AS_DEFAULT_ENGINE)
+//    engine = BatchNormParameter_Engine_MKLDNN;
+//#else
     engine = BatchNormParameter_Engine_CAFFE;
-#endif
+//#endif
   }
 
   if (engine == BatchNormParameter_Engine_CAFFE) {
